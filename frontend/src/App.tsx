@@ -1,15 +1,9 @@
-import React, { useState } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useCallback, useState } from "react";
+import "./App.css";
+import { TodoItem } from "./models/TodoItem";
+import TodoEditor from "./components/TodoEditor";
 
-type TodoItem ={
-  id: number,
-  title: string,
-  description: string, 
-  completed: boolean,
-}
-
-const todoItemsDefault : TodoItem[] = [
+const todoItemsDefault: TodoItem[] = [
   {
     id: 1,
     title: "Go to Market",
@@ -37,9 +31,38 @@ const todoItemsDefault : TodoItem[] = [
 ];
 
 function App() {
-
   const [viewCompleted, setViewCompleted] = useState(false);
-  const [todoItems, setTodoItems] = useState(todoItemsDefault)
+  const [todoItems, setTodoItems] = useState(todoItemsDefault);
+  const [activeItem, setActiveItem] = useState<TodoItem>();
+  const [modal, setModal] = useState(false);
+
+  const toggleEditor = useCallback(() => {
+    setModal(!modal);
+  }, [modal]);
+
+  const handleSubmit = useCallback((item?: TodoItem) => {
+    alert(`Save: ${JSON.stringify(item)}`);
+    setModal(false);
+  }, []);
+
+  const handleDelte = useCallback((item: TodoItem) => {
+    alert(`Delete: ${JSON.stringify(item)}`);
+  }, []);
+
+  const handleCreateItem = useCallback(() => {
+    const newItem: TodoItem = {
+      title: "",
+      description: "",
+      completed: false,
+    };
+    setActiveItem(newItem);
+    setModal(true);
+  }, []);
+
+  const handleEditItem = useCallback((item: TodoItem) => {
+    setActiveItem(item);
+    setModal(true);
+  }, []);
 
   const renderTabList = () => {
     return (
@@ -62,7 +85,7 @@ function App() {
 
   const renderItems = () => {
     const newItems = todoItems.filter(
-      (item) => item.completed == viewCompleted
+      (item) => item.completed === viewCompleted
     );
 
     return newItems.map((item) => (
@@ -71,9 +94,7 @@ function App() {
         className="list-group-item d-flex justify-content-between align-items-center"
       >
         <span
-          className={`todo-title mr-2 ${
-            viewCompleted ? "completed-todo" : ""
-          }`}
+          className={`todo-title mr-2 ${viewCompleted ? "completed-todo" : ""}`}
           title={item.description}
         >
           {item.title}
@@ -81,11 +102,17 @@ function App() {
         <span>
           <button
             className="btn btn-secondary mr-2"
+            onClick={() => {
+              handleEditItem(item);
+            }}
           >
             Edit
           </button>
           <button
             className="btn btn-danger"
+            onClick={() => {
+              handleDelte(item);
+            }}
           >
             Delete
           </button>
@@ -103,6 +130,9 @@ function App() {
             <div className="mb-4">
               <button
                 className="btn btn-primary"
+                onClick={() => {
+                  handleCreateItem();
+                }}
               >
                 Add task
               </button>
@@ -114,6 +144,13 @@ function App() {
           </div>
         </div>
       </div>
+      {modal && activeItem && (
+        <TodoEditor
+          activeItem={activeItem}
+          toggle={toggleEditor}
+          onSave={handleSubmit}
+        />
+      )}
     </main>
   );
 }
