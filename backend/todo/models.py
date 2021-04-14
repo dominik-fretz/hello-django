@@ -9,3 +9,6 @@ class Todo(models.Model):
     def __str__(self):
         return self.title
     
+class Note(models.Model):
+    subject = models.CharField(max_length=120)
+    body = models.TextField()
